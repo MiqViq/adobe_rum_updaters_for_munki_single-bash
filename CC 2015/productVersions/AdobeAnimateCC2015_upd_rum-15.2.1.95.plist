@@ -53,7 +53,24 @@
 	<key>postinstall_script</key>
 	<string>#!/bin/bash
 
-# Updates Adobe Animate using Adobe RUM
+function runAtExit {
+# RemoteUpdateManager_Downloads is a RUM leftover that is owned by root:admin
+# Fix or remove RemoteUpdateManager_Downloads as this directory causes permission issues
+itemsToFix=$(find /Users/*/Library/Application\ Support/Adobe/RemoteUpdateManager_Downloads 2&gt;/dev/null)
+
+IFS=$'\n'
+
+if [ ! "" == "$itemsToFix" ]
+then
+	for dirToFix in $itemsToFix
+	do
+		chmod a+rwx "$dirToFix" &amp;&amp; logTyper "Fixed '$dirToFix'"
+		#rm -rf "$dirToFix" &amp;&amp; logTyper "Removed '$dirToFix'"
+	done
+fi
+}
+
+trap runAtExit EXIT
 
 rumCmd=/usr/local/bin/RemoteUpdateManager
 
@@ -76,21 +93,6 @@ then
 	exit 1
 else
 	echo 'OK: FLPR/15.2.1.95/osx10-64 was installed'
-fi
-
-# RemoteUpdateManager_Downloads is a RUM leftover that is owned by root:admin
-# Fix or remove RemoteUpdateManager_Downloads as this directory causes permission issues
-itemsToFix=$(find /Users/*/Library/Application\ Support/Adobe/RemoteUpdateManager_Downloads 2&gt;/dev/null)
-
-IFS=$'\n'
-
-if [ ! "" == "$itemsToFix" ]
-then
-	for dirToFix in $itemsToFix
-	do
-		chmod a+rwx "$dirToFix" &amp;&amp; logTyper "Fixed '$dirToFix'"
-		#rm -rf "$dirToFix" &amp;&amp; logTyper "Removed '$dirToFix'"
-	done
 fi
 
 exit 0</string>

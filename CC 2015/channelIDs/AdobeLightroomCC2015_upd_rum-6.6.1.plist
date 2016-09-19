@@ -53,6 +53,23 @@
 	<key>postinstall_script</key>
 	<string>#!/bin/bash
 
+function runAtExit {
+# RemoteUpdateManager_Downloads is a RUM leftover that is owned by root:admin
+# Fix or remove RemoteUpdateManager_Downloads as this directory causes permission issues
+itemsToFix=$(find /Users/*/Library/Application\ Support/Adobe/RemoteUpdateManager_Downloads 2&gt;/dev/null)
+
+IFS=$'\n'
+
+if [ ! "" == "$itemsToFix" ]
+then
+	for dirToFix in $itemsToFix
+	do
+		chmod a+rwx "$dirToFix" &amp;&amp; logTyper "Fixed '$dirToFix'"
+		#rm -rf "$dirToFix" &amp;&amp; logTyper "Removed '$dirToFix'"
+	done
+fi
+}
+
 rumCmd=/usr/local/bin/RemoteUpdateManager
 
 if [ ! -x "$rumCmd" ]

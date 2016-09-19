@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>_metadata</key>
+	<dict>
+		<key>created_by</key>
+		<string>sysadmin</string>
+		<key>creation_date</key>
+		<date>2016-09-18T12:49:36Z</date>
+		<key>munki_version</key>
+		<string>2.8.1.2837</string>
+		<key>os_version</key>
+		<string>10.11.6</string>
+	</dict>
+	<key>autoremove</key>
+	<false/>
+	<key>blocking_applications</key>
+	<array>
+		<string>Adobe Animate CC 2015.2.app</string>
+	</array>
+	<key>catalogs</key>
+	<array>
+		<string>testing</string>
+	</array>
+	<key>description</key>
+	<string>Adobe Animate update, version 15.2.1.95.</string>
+	<key>display_name</key>
+	<string>Adobe Animate update</string>
+	<key>installer_type</key>
+	<string>nopkg</string>
+	<key>installs</key>
+	<array>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.adobe.Adobe Animate CC 2015.2.application</string>
+			<key>CFBundleName</key>
+			<string>Animate CC</string>
+			<key>CFBundleVersion</key>
+			<string>15.2.1.95</string>
+			<key>path</key>
+			<string>/Applications/Adobe Animate CC 2015.2/Adobe Animate CC 2015.2.app</string>
+			<key>type</key>
+			<string>bundle</string>
+			<key>version_comparison_key</key>
+			<string>CFBundleVersion</string>
+		</dict>
+	</array>
+	<key>minimum_os_version</key>
+	<string>10.10.0</string>
+	<key>name</key>
+	<string>AdobeAnimateCC2015_upd_rum</string>
+	<key>postinstall_script</key>
+	<string>#!/bin/bash
+
+# Updates Adobe Animate using Adobe RUM
+
+rumCmd=/usr/local/bin/RemoteUpdateManager
+
+if [ ! -x "$rumCmd" ]
+then
+	echo 'ERROR: $rumCmd is not installed'
+	exit 1
+fi
+
+if ! "$rumCmd" --action=list 2&gt;&amp;1 | grep -q "FLPR/15.2.1.95/osx10-64"
+then
+	echo 'NOTICE: FLPR/15.2.1.95/osx10-64 is not available'
+	exit 0
+fi
+
+"$rumCmd" --productVersions="FLPR" --action=install 2&gt;&amp;1
+if [ $? -ne 0 ]
+then
+	echo 'ERROR: there was a Adobe RUM problem with FLPR/15.2.1.95/osx10-64'
+	exit 1
+else
+	echo 'OK: FLPR/15.2.1.95/osx10-64 was installed'
+fi
+
+# RemoteUpdateManager_Downloads is a RUM leftover that is owned by root:admin
+# Fix or remove RemoteUpdateManager_Downloads as this directory causes permission issues
+itemsToFix=$(find /Users/*/Library/Application\ Support/Adobe/RemoteUpdateManager_Downloads 2&gt;/dev/null)
+
+IFS=$'\n'
+
+if [ ! "" == "$itemsToFix" ]
+then
+	for dirToFix in $itemsToFix
+	do
+		chmod a+rwx "$dirToFix" &amp;&amp; logTyper "Fixed '$dirToFix'"
+		#rm -rf "$dirToFix" &amp;&amp; logTyper "Removed '$dirToFix'"
+	done
+fi
+
+exit 0</string>
+	<key>unattended_install</key>
+	<true/>
+	<key>unattended_uninstall</key>
+	<false/>
+	<key>uninstallable</key>
+	<false/>
+	<key>update_for</key>
+	<array>
+		<string>AdobeAnimateCC2015</string>
+	</array>
+	<key>version</key>
+	<string>15.2.1.95</string>
+</dict>
+</plist>

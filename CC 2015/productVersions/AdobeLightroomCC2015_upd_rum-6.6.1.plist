@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>_metadata</key>
+	<dict>
+		<key>created_by</key>
+		<string>sysadmin</string>
+		<key>creation_date</key>
+		<date>2016-09-17T21:14:41Z</date>
+		<key>munki_version</key>
+		<string>2.8.1.2837</string>
+		<key>os_version</key>
+		<string>10.11.6</string>
+	</dict>
+	<key>autoremove</key>
+	<false/>
+	<key>blocking_applications</key>
+	<array>
+		<string>Adobe Lightroom.app</string>
+	</array>
+	<key>catalogs</key>
+	<array>
+		<string>testing</string>
+	</array>
+	<key>description</key>
+	<string>Adobe Lightroom update, version 6.6.1.</string>
+	<key>display_name</key>
+	<string>Adobe Lightroom update</string>
+	<key>installer_type</key>
+	<string>nopkg</string>
+	<key>installs</key>
+	<array>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.adobe.Lightroom6</string>
+			<key>CFBundleVersion</key>
+			<string>6.6.1</string>
+			<key>minosversion</key>
+			<string>10.8</string>
+			<key>path</key>
+			<string>/Applications/Adobe Lightroom/Adobe Lightroom.app</string>
+			<key>type</key>
+			<string>bundle</string>
+			<key>version_comparison_key</key>
+			<string>CFBundleVersion</string>
+		</dict>
+	</array>
+	<key>minimum_os_version</key>
+	<string>10.10.0</string>
+	<key>name</key>
+	<string>AdobeLightroomCC2015_upd_rum</string>
+	<key>postinstall_script</key>
+	<string>#!/bin/bash
+
+rumCmd=/usr/local/bin/RemoteUpdateManager
+
+if [ ! -x "$rumCmd" ]
+then
+	echo 'ERROR: $rumCmd is not installed'
+	exit 1
+fi
+
+if ! "$rumCmd" --action=list 2&gt;&amp;1 | grep -q "AdobeLightroom-6.0/6.6.1"
+then
+	echo 'NOTICE: AdobeLightroom-6.0/6.6.1 is not available'
+	exit 0
+fi
+
+echo "Asking RUM to install update 'AdobeLightroom-6.0/6.6.1'"
+
+"$rumCmd" --channelIds="AdobeLightroom-6.0" --action=install 2&gt;&amp;1
+if [ $? -ne 0 ]
+then
+	echo 'ERROR: there was a Adobe RUM problem with AdobeLightroom-6.0/6.6.1'
+	exit 1
+else
+	echo 'OK: AdobeLightroom-6.0/6.6.1 was installed'
+fi
+
+# RemoteUpdateManager_Downloads is a RUM leftover that is owned by root:admin
+# Fix or remove RemoteUpdateManager_Downloads as this directory causes permission issues
+itemsToFix=$(find /Users/*/Library/Application\ Support/Adobe/RemoteUpdateManager_Downloads 2&gt;/dev/null)
+
+IFS=$'\n'
+
+if [ ! "" == "$itemsToFix" ]
+then
+	for dirToFix in $itemsToFix
+	do
+		chmod a+rwx "$dirToFix" &amp;&amp; logTyper "Fixed '$dirToFix'"
+		#rm -rf "$dirToFix" &amp;&amp; logTyper "Removed '$dirToFix'"
+	done
+fi
+
+# fix visible version number for Abobe Lightroom
+
+LightroomAppInfoFile="/Applications/Adobe Lightroom/Adobe Lightroom.app/Contents/Info.plist"
+
+if [ -e "$LightroomAppInfoFile" ]
+then
+	getSrc=$(defaults read "$LightroomAppInfoFile" CFBundleVersion 2&gt;/dev/null)
+	
+	if [ ! "" == "$getSrc" ]
+	then
+		defaults write "$LightroomAppInfoFile" CFBundleShortVersionString "$getSrc" 2&gt;/dev/null
+		plutil -convert xml1 "$LightroomAppInfoFile" 2&gt;/dev/null
+		chmod a+r "$LightroomAppInfoFile" 2&gt;/dev/null
+	fi
+fi
+
+exit 0</string>
+	<key>unattended_install</key>
+	<true/>
+	<key>unattended_uninstall</key>
+	<false/>
+	<key>uninstallable</key>
+	<false/>
+	<key>update_for</key>
+	<array>
+		<string>AdobeLightroomCC2015</string>
+	</array>
+	<key>version</key>
+	<string>6.6.1</string>
+</dict>
+</plist>

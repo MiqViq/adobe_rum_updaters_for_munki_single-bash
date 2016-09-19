@@ -70,6 +70,8 @@ then
 fi
 }
 
+trap runAtExit EXIT
+
 rumCmd=/usr/local/bin/RemoteUpdateManager
 
 if [ ! -x "$rumCmd" ]
